@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Bot - Configuração</title>
+  <style>
+    /* Definindo o tema dark */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #181818;
+      color: #E0E0E0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    h1 {
+      color: #00C8C8;
+      font-size: 36px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #00C8C8;
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .container {
+      background-color: #2A2A2A;
+      border-radius: 8px;
+      padding: 30px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    label {
+      font-size: 14px;
+      margin-bottom: 8px;
+      display: block;
+      color: #B0B0B0;
+    }
+
+    textarea, input[type="text"], input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      background-color: #3A3A3A;
+      color: #E0E0E0;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #00C8C8;
+      color: white;
+      font-size: 18px;
+      padding: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #009999;
+    }
+
+    #qrCode {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    #messages, #sentMessages {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #333;
+      border-radius: 6px;
+      width: 100%;
+      max-width: 600px;
+      color: #B0B0B0;
+      font-size: 14px;
+    }
+
+    .message, .sentMessage {
+      background-color: #444;
+      border-radius: 5px;
+      padding: 8px;
+      margin-bottom: 10px;
+      color: #E0E0E0;
+    }
+
+    /* Footer de créditos */
+    footer {
+      margin-top: 30px;
+      color: #B0B0B0;
+      font-size: 14px;
+      text-align: center;
+      width: 100%;
+    }
+
+    footer a {
+      color: #00C8C8;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .status.online {
+      color: #2E7D32;
+    }
+
+    .status.offline {
+      color: #D32F2F;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>WhatsApp Bot - Configuração</h1>
+  <div class="container">
+    <h2>Configurar Bot</h2>
+
+    <!-- Formulário de configuração -->
+    <label for="mensagem">Mensagem a ser enviada:</label>
+    <textarea id="mensagem" placeholder="Digite a mensagem que será enviada" rows="4"></textarea>
+
+    <label for="intervalo">Intervalo entre mensagens (em minutos):</label>
+    <input type="number" id="intervalo" min="1" placeholder="Intervalo em minutos" />
+
+    <label for="groupId">ID do grupo (formato: <span>@g.us</span>):</label>
+    <input type="text" id="groupId" placeholder="Digite o ID do grupo" />
+
+    <button id="startBot">Iniciar Bot</button>
+
+    <div id="qrCode"></div>
+
+    <!-- Status do bot -->
+    <div id="botStatus" class="status">Status: <span>Offline</span></div>
+
+    <!-- Área para exibição de mensagens -->
+    <div id="messages"></div>
+
+    <!-- Relatório de mensagens enviadas -->
+    <div id="sentMessages"></div>
+  </div>
+
+  <!-- Créditos -->
+  <footer>
+    <p>Créditos: <a href="https://w.app/silvadev" target="_blank">SilvaDev</a></p>
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    // Atualiza o status do bot
+    socket.on('status', (status) => {
+      const botStatusElement = document.getElementById('botStatus');
+      const statusText = status === 'online' ? 'Online' : 'Offline';
+      const statusClass = status === 'online' ? 'online' : 'offline';
+
+      botStatusElement.innerHTML = `Status: <span class="${statusClass}">${statusText}</span>`;
+    });
+
+    // Bot status
+    socket.on('ready', (status) => {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', 'success');
+      messageElement.textContent = status;
+      document.getElementById('messages').appendChild(messageElement);
+    });
+
+    // Receber QR Code e exibir na página
+    socket.on('qr', (qr) => {
+      const qrDiv = document.getElementById('qrCode');
+      qrDiv.innerHTML = `<pre>${qr}</pre>`;  // Aqui você pode usar um gerador de QR Code visual
+    });
+
+    // Mensagens recebidas do bot
+    socket.on('message', (msg) => {
+      const messagesDiv = document.getElementById('messages');
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message');
+      messageElement.textContent = msg;
+      messagesDiv.appendChild(messageElement);
+    });
+
+    // Relatório das mensagens enviadas
+    socket.on('sentMessages', (messages) => {
+      const sentMessagesDiv = document.getElementById('sentMessages');
+      sentMessagesDiv.innerHTML = ''; // Limpa a área de relatórios
+
+      messages.forEach((msg) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('sentMessage');
+        messageDiv.innerHTML = `
+          <div class="header">${msg.groupName} - ${msg.groupId}</div>
+          <div><strong>Mensagem:</strong> ${msg.mensagem}</div>
+          <div><strong>Data/Hora:</strong> ${msg.dataHora}</div>
+        `;
+        sentMessagesDiv.appendChild(messageDiv);
+      });
+    });
+
+    // Função para enviar os dados de configuração para o servidor
+    document.getElementById('startBot').addEventListener('click', () => {
+      const mensagem = document.getElementById('mensagem').value;
+      const intervalo = document.getElementById('intervalo').value;
+      const groupId = document.getElementById('groupId').value;
+
+      // Verifica se todos os campos foram preenchidos
+      if (mensagem && intervalo && groupId) {
+        // Enviar as configurações para o servidor via socket
+        socket.emit('startBot', {
+          mensagem: mensagem,
+          intervalo: intervalo,
+          groupId: groupId,
+        });
+      } else {
+        alert('Por favor, preencha todos os campos.');
+      }
+    });
+  </script>
+</body>
+</html>
