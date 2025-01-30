@@ -42,6 +42,10 @@ client.on('disconnected', () => {
   io.emit('status', 'offline'); // Envia "offline" para o frontend
 });
 
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled promise rejection:', error);
+});
+
 // Quando receber uma mensagem
 client.on('message', async (msg) => {
   const texto = msg.body;
