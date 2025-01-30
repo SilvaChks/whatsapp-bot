@@ -3,3 +3,8 @@ libatk-bridge2.0-0
 libgdk-pixbuf2.0-0
 libnspr4
 libnss3
+libxss1
+libappindicator3-1
+libasound2
+libgconf-2-4
+libgbm1
