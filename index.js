@@ -4,12 +4,16 @@ const socketIo = require('socket.io');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
+// Configuração do Puppeteer para o Heroku
+const puppeteerOptions = {
+  headless: true, // Executa o navegador em modo headless
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser', // Define o caminho do Chromium no Heroku
+};
+
 // Configuração do cliente do WhatsApp
 const client = new Client({
   authStrategy: new LocalAuth(), // Salva a sessão localmente
-  puppeteer: {
-    headless: true, // Executa o navegador em modo headless
-  },
+  puppeteer: puppeteerOptions,
 });
 
 let mensagem = null;
@@ -40,10 +44,6 @@ client.on('ready', () => {
 client.on('disconnected', () => {
   console.log('Bot desconectado!');
   io.emit('status', 'offline'); // Envia "offline" para o frontend
-});
-
-process.on('unhandledRejection', (error) => {
-  console.error('Unhandled promise rejection:', error);
 });
 
 // Quando receber uma mensagem
